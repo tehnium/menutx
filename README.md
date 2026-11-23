@@ -69,14 +69,14 @@ running `./install.sh` will:
    | **hyfetch** | `neofetch` with LGBTQ+ pride flags | your user | [hykilpikonna/hyfetch](https://github.com/hykilpikonna/hyfetch) | MIT |
    | **mc** | Midnight Commander, a two-pane terminal file manager | your user | [MidnightCommander/mc](https://github.com/MidnightCommander/mc) | GPL-3.0-or-later |
    | **nmon** | Nigel's performance monitor for CPU, memory, disks and network | your user | [nmon.sourceforge.net](https://nmon.sourceforge.net) | GPL-3.0-or-later |
-   | **opencode** | An AI coding agent for the terminal | your user | [anomalyco/opencode](https://github.com/anomalyco/opencode) | MIT |
+   | **opencode** | OpenCode 2, an AI coding agent for the terminal | your user | [anomalyco/opencode](https://github.com/anomalyco/opencode) | MIT |
 
 3. **Write the menu and the per-tool launchers** (`menutx.sh`, `syswatch.sh`,
    and so on) into `~/menutx`, with a stable `bin/` symlink for every tool.
 4. **Add the alias** `menutx` for `~/menutx/menutx.sh` to `~/.bashrc`
    (idempotently, with a backup of the file).
-5. **Install opencode** with its official installer
-   (`curl -fsSL https://opencode.ai/install | bash`), unless you pass
+5. **Install OpenCode 2** with its official v2 installer
+   (`curl -fsSL https://opencode.ai/v2/install | bash`), unless you pass
    `--no-opencode`.
 
 The menu itself runs as your normal user. Only the launchers that need root
@@ -383,7 +383,7 @@ the default `~/menutx` installation.
 | netwatch says capture is not permitted | Launch it through `~/menutx/netwatch.sh` (it uses sudo), or grant capabilities as described in the netwatch documentation. |
 | netscan cannot find nmap | `sudo apt install nmap`. The installer normally does this. |
 | hyfetch is missing | `sudo apt install hyfetch`; if the release does not package it, `python3 -m pip install --user --break-system-packages hyfetch`. |
-| opencode is missing | `curl -fsSL https://opencode.ai/install \| bash`, then run it from the menu again. |
+| OpenCode 2 is missing | `curl -fsSL https://opencode.ai/v2/install \| bash`, then run it from the menu again. |
 | The TUI looks garbled after a crash | Run `reset`, use a UTF-8 terminal of at least 80x24, and avoid a non-interactive shell. |
 | Menu exits immediately in a script | That is the non-interactive fallback; use `menutx.sh --list` for scripting. |
 | `Permission denied` when running `./install.sh` | `chmod +x install.sh`, or run `bash install.sh`. ZIP downloads and files uploaded through GitHub's web interface do not keep the executable bit. |

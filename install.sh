@@ -414,16 +414,16 @@ fi
 
 SKIP_WRAPPERS=()
 if (( INSTALL_OPENCODE )); then
-  say "Installing opencode"
-  if as_user bash -c 'curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path'; then
-    info "opencode is installed in ~/.opencode/bin"
+  say "Installing OpenCode 2"
+  if as_user bash -c 'curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path'; then
+    info "OpenCode 2 is installed in ~/.opencode/bin"
   else
-    warn "opencode could not be installed. Install it later with: curl -fsSL https://opencode.ai/install | bash"
+    warn "OpenCode 2 could not be installed. Install it later with: curl -fsSL https://opencode.ai/v2/install | bash"
   fi
 else
   SKIP_WRAPPERS+=("opencode.sh")
   rm -f -- "$INSTALL_DIR/opencode.sh"
-  say "Skipping opencode (--no-opencode)"
+  say "Skipping OpenCode 2 (--no-opencode)"
 fi
 
 shopt -s nullglob
