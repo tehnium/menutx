@@ -6,6 +6,9 @@
 # DuckDuckGo Lite when the input is empty. Browsh uses a fixed local port
 # (3334), so only one instance can run at a time.
 #
+# Browsh 1.8.2 still crashes on some heavy pages. The wrapper captures its
+# stderr and offers w3m as a stable fallback after a crash.
+#
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set -u
@@ -95,7 +98,46 @@ fi
 printf 'Browsh keys: Ctrl+L URL bar, Ctrl+T new tab, Ctrl+Q quit.\n' >&2
 sleep 1
 
+args=()
 if [[ -n $target ]]; then
-  exec browsh --firefox.path "$FIREFOX" --startup-url "$target" "$@"
+  args=(--startup-url "$target" "$@")
+else
+  args=("$@")
 fi
-exec browsh --firefox.path "$FIREFOX" "$@"
+
+err="${TMPDIR:-/tmp}/menutx-browsh.$$.log"
+: > "$err" 2>/dev/null || err=/dev/null
+cleanup() {
+  if [[ $err != /dev/null ]]; then
+    rm -f -- "$err"
+  fi
+}
+trap cleanup EXIT
+
+browsh --firefox.path "$FIREFOX" "${args[@]}" 2>"$err"
+rc=$?
+stty sane 2>/dev/null || true
+
+if (( rc != 0 && rc != 130 && rc != 143 )); then
+  printf '\nBrowsh exited with status %d.\n' "$rc" >&2
+  if [[ $err != /dev/null && -s $err ]]; then
+    printf 'Last lines from Browsh:\n' >&2
+    tail -n 12 "$err" >&2
+  fi
+  printf 'This is a Browsh/Firefox crash, not a menutx bug.\n' >&2
+  if command -v w3m >/dev/null 2>&1; then
+    printf 'Open the same URL in w3m instead? [Y/n] ' >&2
+    IFS= read -r answer || answer=n
+    case ${answer:-y} in
+      n|N) ;;
+      *)
+        cleanup
+        exec w3m "${target:-https://lite.duckduckgo.com/lite/}"
+        ;;
+    esac
+  else
+    printf 'Install w3m for a stable fallback: sudo apt install w3m\n' >&2
+  fi
+fi
+
+exit "$rc"

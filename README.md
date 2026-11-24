@@ -16,8 +16,8 @@ player, a music player, an image viewer and a text editor. It installs
 `~/.bashrc`.
 
 ```text
-  menutx 1.2.0
-  Terminal tools on Debian - 15 launchers
+  menutx 1.2.1
+  Terminal tools on Debian - 16 launchers
 
   > syswatch     CPU, memory, disks, processes and power
     netwatch     Connections, latency and packet capture
@@ -26,6 +26,7 @@ player, a music player, an image viewer and a text editor. It installs
     netscan      nmap scans and attack-surface workflow
     soundwatch   Audio devices, streams and meters
     browsh       Text-based web browser (Firefox)
+    w3m          Stable text browser (no JavaScript)
     mpv          Video player with terminal output
     cmus         Music player and library
     chafa        Image and GIF viewer
@@ -56,7 +57,7 @@ running `./install.sh` will:
 1. **Install the system dependencies** with `apt`:
    `curl`, `ca-certificates`, `tar`, `gzip`, `xz-utils`, `sudo`, `mc`, `nmon`,
    `nmap`, `smartmontools`, `alsa-utils`, `libpulse0`, `iproute2`, `procps`,
-   `mpv`, `cmus`, `chafa`, `fzf` and `micro`.
+   `mpv`, `cmus`, `chafa`, `fzf`, `micro` and `w3m`.
    `nmap` is a hard dependency of netscan, `smartmontools` feeds diskwatch's
    SMART tab, `libpulse0` is loaded at runtime by soundwatch's meters, `mpv`
    plays video, `cmus` plays music, `chafa` shows images and `micro` edits
@@ -81,6 +82,7 @@ running `./install.sh` will:
    | **netscan** | An nmap workflow: target groups, scan profiles, live results and history | `sudo` | [matthart1983/netscan](https://github.com/matthart1983/netscan) | MIT |
    | **soundwatch** | Audio devices, streams, meters, spectrum, latency, xruns and routing | your user | [matthart1983/soundwatch](https://github.com/matthart1983/soundwatch) | MIT |
    | **browsh** | Text-based web browser rendered by Firefox | your user | [browsh-org/browsh](https://github.com/browsh-org/browsh) | LGPL-2.1 |
+   | **w3m** | Stable text browser without JavaScript | your user | [w3m.sourceforge.net](https://w3m.sourceforge.net/) | w3m license |
    | **mpv** | Video player with terminal output (`--vo=tct`) | your user | [mpv-player/mpv](https://github.com/mpv-player/mpv) | GPL-2.0-or-later |
    | **cmus** | Music player and library for the terminal | your user | [cmus/cmus](https://github.com/cmus/cmus) | GPL-2.0 |
    | **chafa** | Image and GIF viewer for the terminal | your user | [hpjansson/chafa](https://github.com/hpjansson/chafa) | LGPL-3.0 |
@@ -135,6 +137,7 @@ the upstream repositories and consider supporting the author.
 Other upstream projects:
 
 - [Browsh](https://github.com/browsh-org/browsh) by Thomas Buckley-Houston, LGPL-2.1
+- [w3m](https://w3m.sourceforge.net/) by Akinori Ito and contributors, w3m license (MIT-style)
 - [mpv](https://github.com/mpv-player/mpv), GPL-2.0-or-later
 - [cmus](https://github.com/cmus/cmus), GPL-2.0
 - [chafa](https://github.com/hpjansson/chafa), LGPL-3.0
@@ -264,7 +267,7 @@ If you prefer not to use the alias:
 |---|---|
 | `--dir PATH` | Install into `PATH` instead of `~/menutx` |
 | `--pinned` | Use the pinned versions in `install.sh`; do not query GitHub for the latest release |
-| `--no-deps` | Skip the apt packages (and hyfetch, Browsh, mpv, cmus, chafa and micro); the six diagnostics are still downloaded |
+| `--no-deps` | Skip the apt packages (and hyfetch, Browsh, mpv, cmus, chafa, micro and w3m); the six diagnostics are still downloaded |
 | `--no-browsh` | Do not install Browsh or its Firefox dependency |
 | `--no-opencode` | Do not install OpenCode 2 or its launcher |
 | `--no-alias` | Do not touch `~/.bashrc` |
@@ -302,6 +305,7 @@ scopes is enough for public repositories.
 ├── netscan.sh
 ├── soundwatch.sh
 ├── browsh.sh
+├── w3m.sh
 ├── mpv.sh
 ├── cmus.sh
 ├── chafa.sh
@@ -359,6 +363,7 @@ Browsing, media and editing:
 
 ```bash
 ~/menutx/browsh.sh https://example.com
+~/menutx/w3m.sh https://example.com
 ~/menutx/mpv.sh ~/Videos/movie.mkv
 ~/menutx/mpv.sh --vo=kitty ~/Videos/movie.mkv   # Kitty graphics protocol
 ~/menutx/cmus.sh
@@ -377,7 +382,9 @@ cmus and plays it.
 `browsh.sh` asks for a URL or a search term; pressing Enter opens DuckDuckGo
 Lite. Inside Browsh, `Ctrl+L` opens the URL bar, `Ctrl+T` opens a tab and
 `Ctrl+Q` quits. Browsh uses a fixed port (3334), so only one instance can run
-at a time.
+at a time. Browsh 1.8.2 crashes on some heavy pages; when that happens the
+wrapper shows the last error lines and offers to reopen the same URL in `w3m`,
+the stable text browser (`U` URL, `H` help, `/` search, `q` quit).
 
 `mpv.sh` defaults to `--vo=tct`, which works in every terminal; pass
 `--vo=kitty` or `--vo=sixel` for higher-quality graphics where supported.
@@ -389,8 +396,8 @@ its Hot Files view follows your home directory rather than `/root`.
 
 To add your own launcher, drop an executable `*.sh` file into `~/menutx` and
 press `r` in the menu. The menu reproduces the pinned order (the six watch
-tools, then Browsh, mpv, cmus, chafa and micro) and sorts anything else
-alphabetically.
+tools, then Browsh, w3m, mpv, cmus, chafa and micro) and sorts anything
+else alphabetically.
 
 ---
 
@@ -484,6 +491,9 @@ the default `~/menutx` installation.
 | Browsh says port 3334 is in use | Another Browsh is running. Press Ctrl+Q in it, or run `pkill -f browsh`, then relaunch. |
 | Browsh stays on its splash screen | Close stale instances with `pkill -f browsh` and relaunch. The wrapper now asks for a URL and opens DuckDuckGo Lite by default. If it still hangs, Firefox could not load the Browsh extension. |
 | Browsh is slow on the first run | It starts a headless Firefox. Later runs are faster. |
+| Browsh crashes or prints a Go panic | Browsh 1.8.2 is unstable on some pages. The wrapper offers to reopen the URL in w3m; choose Y. You can also run `~/menutx/w3m.sh URL` directly. |
+| w3m is missing | `sudo apt install w3m`. The installer installs it by default. |
+| Browsh exits but no URL opens | At the prompt, type a URL or search term and press Enter; Enter on an empty prompt opens DuckDuckGo Lite. |
 | The media picker starts in an empty folder | Use `../` to go up, or pass a file directly: `~/menutx/mpv.sh /path/video.mp4`. |
 | `cmus.sh` prints "Added to the running cmus instance" | That is intentional: it queues the track in the existing cmus instead of starting a second one. |
 | mpv shows no video | Launch it through `~/menutx/mpv.sh` (it adds `--vo=tct`), or pass `--vo=kitty` / `--vo=sixel` in a terminal that supports those protocols. |
@@ -491,7 +501,7 @@ the default `~/menutx` installation.
 | chafa images look blocky | Use `-f kitty` or `-f sixels` in a supporting terminal; symbols mode is ANSI art by design. |
 | micro: how do I save or quit? | Ctrl-S saves, Ctrl-Q quits. |
 | Browsh is still installed after uninstalling menutx | Browsh is an apt package: `sudo apt remove browsh`. |
-| `--no-deps` left mpv, cmus, chafa or micro missing | `sudo apt install mpv cmus chafa fzf micro`, or re-run the installer without `--no-deps`. |
+| `--no-deps` left mpv, cmus, chafa, micro or w3m missing | `sudo apt install mpv cmus chafa fzf micro w3m`, or re-run the installer without `--no-deps`. |
 | Browsh was skipped during installation | Check disk space and that `apt` works, then re-run `./install.sh`; `--no-browsh` skips it deliberately. |
 | The TUI looks garbled after a crash | Run `reset`, use a UTF-8 terminal of at least 80x24, and avoid a non-interactive shell. |
 | Menu exits immediately in a script | That is the non-interactive fallback; use `menutx.sh --list` for scripting. |
