@@ -9,13 +9,14 @@
 
 set -u
 
-VERSION="1.0.0"
+VERSION="1.1.0"
 SELF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SELF="$(basename -- "${BASH_SOURCE[0]}")"
 
 # Shown first, in this order. Any other launcher in the folder follows
 # alphabetically, so dropping a new executable here is enough to list it.
-PINNED_FIRST=(syswatch netwatch diskwatch kernwatch netscan soundwatch)
+PINNED_FIRST=(syswatch netwatch diskwatch kernwatch netscan soundwatch \
+  browsh mpv cmus chafa micro)
 
 declare -a NAMES=()
 declare -A TARGET=()
@@ -28,6 +29,11 @@ DESC=(
   [kernwatch]="Kernel, eBPF, scheduler and interrupts"
   [netscan]="nmap scans and attack-surface workflow"
   [soundwatch]="Audio devices, streams and meters"
+  [browsh]="Text-based web browser (Firefox)"
+  [mpv]="Video player with terminal output"
+  [cmus]="Music player and library"
+  [chafa]="Image and GIF viewer"
+  [micro]="Text and Markdown editor"
   [hyfetch]="Neofetch with pride flags"
   [mc]="Midnight Commander file manager"
   [nmon]="Nigel's performance monitor"
@@ -132,7 +138,7 @@ draw() {
   local i name desc
   printf '%s%s' "$CLR" "$HIDE"
   printf '\n  %smenutx%s %s\n' "$BOLD" "$RESET" "$VERSION"
-  printf '  %sTerminal diagnostics on Debian - %d launchers%s\n\n' \
+  printf '  %sTerminal tools on Debian - %d launchers%s\n\n' \
     "$DIM" "${#NAMES[@]}" "$RESET"
   for i in "${!NAMES[@]}"; do
     name=${NAMES[i]}

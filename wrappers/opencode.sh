@@ -20,8 +20,8 @@ if [[ ! -x $BIN ]]; then
 fi
 
 if [[ -z $BIN || ! -x $BIN ]]; then
-  printf 'menutx: opencode is not installed.\n' >&2
-  printf '  Install it with: curl -fsSL https://opencode.ai/install | bash\n' >&2
+  printf 'menutx: OpenCode 2 is not installed.\n' >&2
+  printf '  Install it with: curl -fsSL https://opencode.ai/v2/install | bash\n' >&2
   exit 127
 fi
 

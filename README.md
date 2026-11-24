@@ -1,21 +1,23 @@
 # menutx
 
-**One terminal menu for a set of terminal diagnostics tools, installed with
-one script on Debian-based systems.**
+**One terminal menu for diagnostics, browsing, media and editing, installed
+with one script on Debian-based systems.**
 
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 ![Platform: Debian and Ubuntu](https://img.shields.io/badge/platform-Debian%20%7C%20Ubuntu-A81D33)
 ![Shell: Bash](https://img.shields.io/badge/shell-bash-4EAA25?logo=gnubash&logoColor=white)
 
 menutx creates `~/menutx`, installs the packages the tools need, downloads the
-latest Linux builds of six terminal diagnostics programs from GitHub, verifies
+latest Linux builds of six terminal diagnostics programs and Browsh, verifies
 their checksums when the project publishes them, and puts everything behind one
-arrow-key menu. It also installs `hyfetch`, `mc`, `nmon` and `opencode`, and adds
-a `menutx` alias to your `~/.bashrc`.
+arrow-key menu. The same menu also gives you a text-based web browser, a video
+player, a music player, an image viewer and a text editor. It installs
+`hyfetch`, `mc`, `nmon` and `opencode`, and adds a `menutx` alias to your
+`~/.bashrc`.
 
 ```text
-  menutx 1.0.0
-  Terminal diagnostics on Debian - 10 launchers
+  menutx 1.1.0
+  Terminal tools on Debian - 15 launchers
 
   > syswatch     CPU, memory, disks, processes and power
     netwatch     Connections, latency and packet capture
@@ -23,6 +25,11 @@ a `menutx` alias to your `~/.bashrc`.
     kernwatch    Kernel, eBPF, scheduler and interrupts
     netscan      nmap scans and attack-surface workflow
     soundwatch   Audio devices, streams and meters
+    browsh       Text-based web browser (Firefox)
+    mpv          Video player with terminal output
+    cmus         Music player and library
+    chafa        Image and GIF viewer
+    micro        Text and Markdown editor
     hyfetch      Neofetch with pride flags
     mc           Midnight Commander file manager
     nmon         Nigel's performance monitor
@@ -48,15 +55,22 @@ running `./install.sh` will:
 
 1. **Install the system dependencies** with `apt`:
    `curl`, `ca-certificates`, `tar`, `gzip`, `xz-utils`, `sudo`, `mc`, `nmon`,
-   `nmap`, `smartmontools`, `alsa-utils`, `libpulse0`, `iproute2` and `procps`.
+   `nmap`, `smartmontools`, `alsa-utils`, `libpulse0`, `iproute2`, `procps`,
+   `mpv`, `cmus`, `chafa`, `fzf` and `micro`.
    `nmap` is a hard dependency of netscan, `smartmontools` feeds diskwatch's
-   SMART tab, and `libpulse0` is loaded at runtime by soundwatch's meters.
+   SMART tab, `libpulse0` is loaded at runtime by soundwatch's meters, `mpv`
+   plays video, `cmus` plays music, `chafa` shows images and `micro` edits
+   text. `fzf` powers the file pickers in the `mpv.sh` and `chafa.sh`
+   launchers.
    `hyfetch` is installed from apt when the release packages it, otherwise with
    `pip --user`.
    Installing `smartmontools` may enable its `smartd` daemon; menutx only needs
    the `smartctl` client. Disable it with `sudo systemctl disable --now smartd`
    if you do not want it.
-2. **Create `~/menutx`** and download the Linux release archives for:
+2. **Create `~/menutx`** and set up the menu's tools (table below). The six
+   diagnostics are downloaded from GitHub in this step; Browsh is installed
+   from its `.deb` in step 3, and mpv, cmus, chafa and micro come from apt in
+   step 1.
 
    | Tool | What it does | Elevation | Upstream | License |
    |---|---|---|---|---|
@@ -66,28 +80,38 @@ running `./install.sh` will:
    | **kernwatch** | Kernel observability with eBPF: scheduling, memory, block I/O, syscalls, IRQs, cgroups | `sudo` | [matthart1983/kernwatch](https://github.com/matthart1983/kernwatch) | MIT |
    | **netscan** | An nmap workflow: target groups, scan profiles, live results and history | `sudo` | [matthart1983/netscan](https://github.com/matthart1983/netscan) | MIT |
    | **soundwatch** | Audio devices, streams, meters, spectrum, latency, xruns and routing | your user | [matthart1983/soundwatch](https://github.com/matthart1983/soundwatch) | MIT |
+   | **browsh** | Text-based web browser rendered by Firefox | your user | [browsh-org/browsh](https://github.com/browsh-org/browsh) | LGPL-2.1 |
+   | **mpv** | Video player with terminal output (`--vo=tct`) | your user | [mpv-player/mpv](https://github.com/mpv-player/mpv) | GPL-2.0-or-later |
+   | **cmus** | Music player and library for the terminal | your user | [cmus/cmus](https://github.com/cmus/cmus) | GPL-2.0 |
+   | **chafa** | Image and GIF viewer for the terminal | your user | [hpjansson/chafa](https://github.com/hpjansson/chafa) | LGPL-3.0 |
+   | **micro** | Text and Markdown editor | your user | [zyedidia/micro](https://github.com/zyedidia/micro) | MIT |
    | **hyfetch** | `neofetch` with LGBTQ+ pride flags | your user | [hykilpikonna/hyfetch](https://github.com/hykilpikonna/hyfetch) | MIT |
    | **mc** | Midnight Commander, a two-pane terminal file manager | your user | [MidnightCommander/mc](https://github.com/MidnightCommander/mc) | GPL-3.0-or-later |
    | **nmon** | Nigel's performance monitor for CPU, memory, disks and network | your user | [nmon.sourceforge.net](https://nmon.sourceforge.net) | GPL-3.0-or-later |
    | **opencode** | OpenCode 2, an AI coding agent for the terminal | your user | [anomalyco/opencode](https://github.com/anomalyco/opencode) | MIT |
 
-3. **Write the menu and the per-tool launchers** (`menutx.sh`, `syswatch.sh`,
-   and so on) into `~/menutx`, with a stable `bin/` symlink for every tool.
-4. **Add the alias** `menutx` for `~/menutx/menutx.sh` to `~/.bashrc`
+3. **Install Browsh** from its official `.deb`. Browsh needs Firefox; if
+   neither `firefox` nor `firefox-esr` is installed, apt pulls `firefox-esr`
+   (about 100 MB extra). Use `--no-browsh` to skip this step.
+4. **Write the menu and the per-tool launchers** (`menutx.sh`, `syswatch.sh`,
+   `mpv.sh`, and so on) into `~/menutx`, with a stable `bin/` symlink for every
+   downloaded tool.
+5. **Add the alias** `menutx` for `~/menutx/menutx.sh` to `~/.bashrc`
    (idempotently, with a backup of the file).
-5. **Install OpenCode 2** with its official v2 installer
+6. **Install OpenCode 2** with its official v2 installer
    (`curl -fsSL https://opencode.ai/v2/install | bash`), unless you pass
    `--no-opencode`.
 
 The menu itself runs as your normal user. Only the launchers that need root
 call `sudo` (netwatch, diskwatch, kernwatch, netscan); syswatch, soundwatch,
-hyfetch, mc, nmon and opencode run as you. This keeps tool configuration in
-your home instead of `/root`.
+Browsh, mpv, cmus, chafa, micro, hyfetch, mc, nmon and opencode run as you.
+This keeps tool configuration in your home instead of `/root`.
 
 The installer does not write to `/etc` itself, replace system binaries, or
 register its own services; apt packages may perform their normal setup (for
-example, `smartmontools` can start `smartd`). Everything menutx adds lives
-under `~/menutx`.
+example, `smartmontools` can start `smartd`). Browsh is the exception: it is
+installed as a system package with apt, so the command lives in
+`/usr/bin/browsh` and the menutx uninstaller leaves it in place.
 
 ---
 
@@ -110,10 +134,17 @@ the upstream repositories and consider supporting the author.
 
 Other upstream projects:
 
+- [Browsh](https://github.com/browsh-org/browsh) by Thomas Buckley-Houston, LGPL-2.1
+- [mpv](https://github.com/mpv-player/mpv), GPL-2.0-or-later
+- [cmus](https://github.com/cmus/cmus), GPL-2.0
+- [chafa](https://github.com/hpjansson/chafa), LGPL-3.0
+- [micro](https://github.com/zyedidia/micro), MIT
+- [fzf](https://github.com/junegunn/fzf), MIT, used by the video and image pickers
 - [hyfetch](https://github.com/hykilpikonna/hyfetch) by Azis (hykilpikonna), MIT
 - [Midnight Commander](https://github.com/MidnightCommander/mc), GPL-3.0-or-later
 - [nmon](https://nmon.sourceforge.net) by Nigel Griffiths, GPL-3.0-or-later
 - [opencode](https://github.com/anomalyco/opencode), MIT
+- Firefox ESR (MPL-2.0) is installed only when Browsh needs it.
 
 ---
 
@@ -121,22 +152,26 @@ Other upstream projects:
 
 - **Debian 12 (bookworm) or 13 (trixie)**, or a derivative: Ubuntu 22.04+,
   Linux Mint 21+, Pop!_OS 22.04+, Kali, Raspberry Pi OS 64-bit.
-- **x86_64 or aarch64.** armv7l/armv5te works for syswatch, diskwatch and
-  netwatch; the other tools have no build for that architecture and are
-  skipped automatically.
+- **x86_64 or aarch64.** armv7l/armv6l also works for syswatch, diskwatch,
+  netwatch and Browsh; the other tools have no build for those architectures
+  and are skipped automatically.
 - A **normal user with a working `sudo`**. Run the installer as that user (or
   with `sudo ./install.sh`); a bare root shell is refused because the files
   must belong to your user. If `sudo -v` itself fails, the installer stops
   before changing anything. Restricted containers that set `no_new_privs` or
   mount `/` read-only cannot run the apt step; use `--no-deps` there.
 - **Internet access** to Debian mirrors and GitHub releases.
-- About **100 MB** of disk space, including the downloaded binaries and the
-  apt packages.
+- About **500 MB** of disk space with Browsh and Firefox; about **150 MB** with
+  `--no-browsh`. mpv pulls the ffmpeg libraries; Browsh pulls Firefox ESR when
+  no Firefox is installed.
 - A UTF-8 terminal of at least 80x24.
 - For **kernwatch**: a kernel built with BTF (`/sys/kernel/btf/vmlinux`).
   Debian's stock kernels have it; custom kernels may not.
-- For **soundwatch meters**: PipeWire or PulseAudio running in your session.
-  The tool still starts without a sound server and explains what is missing.
+- For **soundwatch meters**, **mpv** and **cmus**: a working PipeWire,
+  PulseAudio or ALSA setup. soundwatch still starts without a sound server and
+  explains what is missing.
+- For the best **chafa** images: a terminal with Kitty or Sixel graphics. The
+  default symbols mode works everywhere.
 
 ### If `sudo` is missing on a minimal Debian install
 
@@ -220,8 +255,9 @@ If you prefer not to use the alias:
 |---|---|
 | `--dir PATH` | Install into `PATH` instead of `~/menutx` |
 | `--pinned` | Use the pinned versions in `install.sh`; do not query GitHub for the latest release |
-| `--no-deps` | Skip the apt packages (and the hyfetch install); the six tools are still downloaded |
-| `--no-opencode` | Do not install opencode or its launcher |
+| `--no-deps` | Skip the apt packages (and hyfetch, Browsh, mpv, cmus, chafa and micro); the six diagnostics are still downloaded |
+| `--no-browsh` | Do not install Browsh or its Firefox dependency |
+| `--no-opencode` | Do not install OpenCode 2 or its launcher |
 | `--no-alias` | Do not touch `~/.bashrc` |
 | `-h`, `--help` | Show usage |
 
@@ -255,11 +291,19 @@ scopes is enough for public repositories.
 ├── kernwatch.sh
 ├── netscan.sh
 ├── soundwatch.sh
+├── browsh.sh
+├── mpv.sh
+├── cmus.sh
+├── chafa.sh
+├── micro.sh
 ├── hyfetch.sh
 ├── mc.sh
 ├── nmon.sh
 └── opencode.sh
 ```
+
+`browsh` itself is `/usr/bin/browsh`: it is a system package installed with
+apt, not a file under `~/menutx`. The other tools live under `~/menutx`.
 
 The exact binary names inside each tool folder depend on the architecture
 (`x86_64`, `aarch64`, `armv5te`); the `bin/` symlinks hide that difference.
@@ -301,12 +345,32 @@ Every tool can also be started directly, which is handy for passing flags:
 ~/menutx/soundwatch.sh --theme btop
 ```
 
+Browsing, media and editing:
+
+```bash
+~/menutx/browsh.sh https://example.com
+~/menutx/mpv.sh ~/Videos/movie.mkv
+~/menutx/mpv.sh --vo=kitty ~/Videos/movie.mkv   # Kitty graphics protocol
+~/menutx/cmus.sh
+~/menutx/chafa.sh ~/Pictures/photo.jpg
+~/menutx/chafa.sh -f sixels ~/Pictures/photo.jpg
+~/menutx/micro.sh ~/notes.md
+```
+
+`mpv.sh` and `chafa.sh` open an `fzf` picker when called without arguments,
+searching `~/Videos` or `~/Pictures`, `~/Downloads` and the current directory.
+`mpv.sh` defaults to `--vo=tct`, which works in every terminal; pass
+`--vo=kitty` or `--vo=sixel` for higher-quality graphics where supported.
+`chafa.sh` uses symbols by default; `-f kitty` and `-f sixels` give sharper
+images. In `micro`, Ctrl-S saves and Ctrl-Q quits.
+
 `diskwatch.sh` adds `--watch "$HOME"` unless you pass your own `--watch`, so
 its Hot Files view follows your home directory rather than `/root`.
 
 To add your own launcher, drop an executable `*.sh` file into `~/menutx` and
 press `r` in the menu. The menu reproduces the pinned order (the six watch
-tools) and sorts anything else alphabetically.
+tools, then Browsh, mpv, cmus, chafa and micro) and sorts anything else
+alphabetically.
 
 ---
 
@@ -335,21 +399,29 @@ fallbacks are:
 | kernwatch | v0.5.1 |
 | netscan | v0.8.1 |
 | soundwatch | v0.2.0 |
+| Browsh | v1.8.2 (latest release with a Linux `.deb`; v1.8.3 is XPI-only) |
 
-Normally the installer asks GitHub for each project's **latest** release and
-uses these only if the API is unavailable or the expected asset is missing.
+The six diagnostics tools normally use each project's **latest** GitHub release;
+the pins are fallbacks for when the API is unavailable or an asset is missing.
+Browsh is always installed from the pinned v1.8.2 `.deb`, because v1.8.3 ships
+only the Firefox XPI.
 
 ### How the download works
 
 1. `GET https://api.github.com/repos/OWNER/REPO/releases/latest` returns the
    tag. If that fails, the pinned tag is used.
-2. The asset is chosen from the manifest for `amd64`, `arm64` or `armv5te`.
+2. The asset is chosen from the manifest for `amd64`, `arm64` or `armhf`
+   (armv5te builds).
 3. The archive is downloaded over HTTPS from the GitHub release page.
 4. If the release publishes `SHA256SUMS`, the matching line is verified with
    `sha256sum -c`. netscan does not publish checksums today, so that step is
    skipped for it.
 5. The archive is extracted into `~/menutx/<tool>/`, the binary is marked
    executable, and `~/menutx/bin/<tool>` is pointed at it.
+6. **Browsh is different:** the installer downloads the pinned v1.8.2 `.deb`
+   for the architecture, verifies it against
+   `browsh_1.8.2_checksums.txt`, and installs it with `apt`, which pulls
+   Firefox if no Firefox is present.
 
 ---
 
@@ -363,6 +435,10 @@ The uninstaller removes `~/menutx` and the menutx block from `~/.bashrc`
 (after asking for confirmation; `--yes` skips the prompt). It **does not**
 remove apt packages, tool configuration under `~/.config`, `~/.opencode`, or
 the `~/.bashrc.menutx.bak` and `~/.bashrc.menutx-uninstall.bak` backups.
+
+Browsh is a system package, so it stays installed. Remove it with
+`sudo apt remove browsh`; remove `firefox-esr` separately only if nothing else
+needs it.
 
 You can also run `./uninstall.sh` from the repository clone; it then removes
 the default `~/menutx` installation.
@@ -384,6 +460,15 @@ the default `~/menutx` installation.
 | netscan cannot find nmap | `sudo apt install nmap`. The installer normally does this. |
 | hyfetch is missing | `sudo apt install hyfetch`; if the release does not package it, `python3 -m pip install --user --break-system-packages hyfetch`. |
 | OpenCode 2 is missing | `curl -fsSL https://opencode.ai/v2/install \| bash`, then run it from the menu again. |
+| Browsh says Firefox is missing | `sudo apt install firefox-esr`; the installer normally pulls it. |
+| Browsh is slow on the first run | It starts a headless Firefox. Later runs are faster. |
+| mpv shows no video | Launch it through `~/menutx/mpv.sh` (it adds `--vo=tct`), or pass `--vo=kitty` / `--vo=sixel` in a terminal that supports those protocols. |
+| mpv or cmus has no sound | Check the sound server (`pactl info`, `wpctl status`) and ALSA (`aplay -l`). |
+| chafa images look blocky | Use `-f kitty` or `-f sixels` in a supporting terminal; symbols mode is ANSI art by design. |
+| micro: how do I save or quit? | Ctrl-S saves, Ctrl-Q quits. |
+| Browsh is still installed after uninstalling menutx | Browsh is an apt package: `sudo apt remove browsh`. |
+| `--no-deps` left mpv, cmus, chafa or micro missing | `sudo apt install mpv cmus chafa fzf micro`, or re-run the installer without `--no-deps`. |
+| Browsh was skipped during installation | Check disk space and that `apt` works, then re-run `./install.sh`; `--no-browsh` skips it deliberately. |
 | The TUI looks garbled after a crash | Run `reset`, use a UTF-8 terminal of at least 80x24, and avoid a non-interactive shell. |
 | Menu exits immediately in a script | That is the non-interactive fallback; use `menutx.sh --list` for scripting. |
 | `Permission denied` when running `./install.sh` | `chmod +x install.sh`, or run `bash install.sh`. ZIP downloads and files uploaded through GitHub's web interface do not keep the executable bit. |
@@ -399,9 +484,12 @@ menutx is free software, licensed under the
 
 Copyright (C) 2026 tehnium and contributors.
 
-The tools menutx downloads are **not** covered by this license. They are
-separate projects with their own licenses (all six `*watch` tools are MIT);
-menutx does not redistribute them, it downloads them at install time.
+The tools menutx downloads or installs are **not** covered by this license.
+They are separate projects with their own licenses: the six `*watch` tools are
+MIT, Browsh is LGPL-2.1, mpv is GPL-2.0-or-later, cmus is GPL-2.0, chafa is
+LGPL-3.0 and micro is MIT. Firefox ESR, a Browsh dependency, is MPL-2.0.
+menutx does not redistribute them; it downloads or installs them at install
+time.
 
 menutx is an unofficial launcher and is not affiliated with Matt Hartley or
 the upstream projects. The tools run with elevated privileges when they need
