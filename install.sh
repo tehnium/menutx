@@ -11,10 +11,7 @@
 set -euo pipefail
 
 APP="menutx"
-MENUTX_VERSION="1.2.1"
-# Browsh 1.8.3 exists, but it ships only the XPI; 1.8.2 is the latest
-# release with Linux .deb packages.
-BROWSH_VERSION="1.8.2"
+MENUTX_VERSION="1.3.0"
 SOURCE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # Pinned fallbacks. The installer prefers each project's latest release and
@@ -39,7 +36,7 @@ APT_PACKAGES=(
   mc nmon nmap smartmontools
   alsa-utils libpulse0
   iproute2 procps
-  mpv cmus chafa fzf micro w3m
+  mpv cmus chafa fzf micro links2
 )
 
 # Options
@@ -50,7 +47,6 @@ INSTALL_DIR=""
 USE_LATEST=1
 INSTALL_DEPS=1
 INSTALL_OPENCODE=1
-INSTALL_BROWSH=1
 ADD_ALIAS=1
 TMP_DIR=""
 
@@ -77,8 +73,7 @@ Usage: ./install.sh [OPTIONS]
 Options:
   --dir PATH       install into PATH (default: ~/menutx)
   --pinned         use the pinned versions; do not ask GitHub for the latest
-  --no-deps        skip apt packages (and the hyfetch and Browsh installs)
-  --no-browsh      do not install Browsh or its Firefox dependency
+  --no-deps        skip apt packages (and the hyfetch install)
   --no-opencode    do not install OpenCode 2
   --no-alias       do not add the menutx alias to ~/.bashrc
   -h, --help       show this help and exit
@@ -116,10 +111,6 @@ while (( $# )); do
       ;;
     --no-deps)
       INSTALL_DEPS=0
-      shift
-      ;;
-    --no-browsh)
-      INSTALL_BROWSH=0
       shift
       ;;
     --no-opencode)
@@ -322,76 +313,6 @@ install_tool() {
   info "  installed to $bin"
 }
 
-verify_browsh_checksum() {
-  local asset=$1 work=$2
-  local sums="$work/browsh_${BROWSH_VERSION}_checksums.txt"
-  local line
-
-  if ! curl -fsSL --max-time 30 -o "$sums" \
-      "https://github.com/browsh-org/browsh/releases/download/v${BROWSH_VERSION}/browsh_${BROWSH_VERSION}_checksums.txt" 2>/dev/null; then
-    warn "Browsh checksums are not available for $BROWSH_VERSION"
-    return 0
-  fi
-
-  line=$(awk -v a="$asset" '$2 == a || $2 == ("*" a) { print; exit }' "$sums")
-  if [[ -z $line ]]; then
-    warn "no checksum entry for $asset"
-    return 0
-  fi
-
-  if printf '%s\n' "$line" | (cd "$work" && sha256sum -c -); then
-    info "  checksum OK"
-  else
-    return 1
-  fi
-}
-
-install_browsh() {
-  local arch=""
-  local asset=""
-  local work="$TMP_DIR/browsh"
-
-  case $(uname -m) in
-    x86_64|amd64) arch=amd64 ;;
-    aarch64|arm64) arch=arm64 ;;
-    armv7l) arch=armv7 ;;
-    armv6l) arch=armv6 ;;
-    *)
-      warn "Browsh has no .deb for $(uname -m); skipping it"
-      return 1
-      ;;
-  esac
-
-  asset="browsh_${BROWSH_VERSION}_linux_${arch}.deb"
-  say "Browsh $BROWSH_VERSION"
-  mkdir -p "$work"
-
-  if ! download "https://github.com/browsh-org/browsh/releases/download/v${BROWSH_VERSION}/${asset}" "$work/$asset"; then
-    warn "could not download Browsh; skipping it"
-    return 1
-  fi
-
-  if ! verify_browsh_checksum "$asset" "$work"; then
-    warn "Browsh checksum verification failed; skipping it"
-    return 1
-  fi
-
-  info "  installing the .deb (this pulls Firefox if it is missing)"
-  if ! run_apt install "$work/$asset"; then
-    warn "Browsh could not be installed; skipping it"
-    return 1
-  fi
-
-  if ! command -v browsh >/dev/null 2>&1; then
-    warn "Browsh was installed but the browsh command is not in PATH; skipping it"
-    return 1
-  fi
-
-  as_user mkdir -p "$TARGET_HOME/.config/browsh" 2>/dev/null || true
-  info "  installed $(command -v browsh)"
-  return 0
-}
-
 add_alias() {
   local rc="$TARGET_HOME/.bashrc"
   local alias_line=""
@@ -481,19 +402,6 @@ while IFS='|' read -r tool repo pinned amd64 arm64 armhf; do
   fi
   install_tool "$tool" "$repo" "$pinned" "$asset"
 done <<< "$MANIFEST"
-
-if (( INSTALL_DEPS && INSTALL_BROWSH )); then
-  if ! install_browsh; then
-    SKIPPED_TOOLS+=("browsh")
-  fi
-else
-  if (( ! INSTALL_DEPS )); then
-    warn "skipping Browsh because --no-deps was used"
-  elif (( ! INSTALL_BROWSH )); then
-    say "Skipping Browsh (--no-browsh)"
-  fi
-  SKIPPED_TOOLS+=("browsh")
-fi
 
 if (( ${#SKIPPED_TOOLS[@]} )); then
   for tool in "${SKIPPED_TOOLS[@]}"; do

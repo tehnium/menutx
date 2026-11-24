@@ -9,14 +9,14 @@
 
 set -u
 
-VERSION="1.2.1"
+VERSION="1.3.0"
 SELF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SELF="$(basename -- "${BASH_SOURCE[0]}")"
 
 # Shown first, in this order. Any other launcher in the folder follows
 # alphabetically, so dropping a new executable here is enough to list it.
 PINNED_FIRST=(syswatch netwatch diskwatch kernwatch netscan soundwatch \
-  browsh w3m mpv cmus chafa micro)
+  links2 mpv cmus chafa micro)
 
 declare -a NAMES=()
 declare -A TARGET=()
@@ -29,8 +29,7 @@ DESC=(
   [kernwatch]="Kernel, eBPF, scheduler and interrupts"
   [netscan]="nmap scans and attack-surface workflow"
   [soundwatch]="Audio devices, streams and meters"
-  [browsh]="Text-based web browser (Firefox)"
-  [w3m]="Stable text browser (no JavaScript)"
+  [links2]="Text web browser (tables, forms, SSL)"
   [mpv]="Video player with terminal output"
   [cmus]="Music player and library"
   [chafa]="Image and GIF viewer"
