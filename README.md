@@ -16,7 +16,7 @@ player, a music player, an image viewer and a text editor. It installs
 `~/.bashrc`.
 
 ```text
-  menutx 1.1.1
+  menutx 1.2.0
   Terminal tools on Debian - 15 launchers
 
   > syswatch     CPU, memory, disks, processes and power
@@ -281,6 +281,7 @@ scopes is enough for public repositories.
 ├── menutx.sh                  # the menu
 ├── uninstall.sh
 ├── LICENSE
+├── _pick.sh                   # shared directory picker for the media tools
 ├── bin/                       # stable names the wrappers call
 │   ├── syswatch -> ../syswatch/syswatch-linux-x86_64
 │   ├── netwatch -> ../netwatch/netwatch-linux-x86_64
@@ -366,8 +367,18 @@ Browsing, media and editing:
 ~/menutx/micro.sh ~/notes.md
 ```
 
-`mpv.sh` and `chafa.sh` open an `fzf` picker when called without arguments,
-searching `~/Videos` or `~/Pictures`, `~/Downloads` and the current directory.
+`mpv.sh`, `cmus.sh`, `chafa.sh` and `micro.sh` open a shared directory picker
+when called without arguments. It starts in `~/Videos`, `~/Music`, `~/Pictures`
+or `~/Documents` (falling back to `~`) and lets you walk the tree with `../`;
+`fzf` provides the searchable UI when installed, otherwise a numbered menu is
+used. `cmus.sh` queues the chosen track in a running cmus instance, or starts
+cmus and plays it.
+
+`browsh.sh` asks for a URL or a search term; pressing Enter opens DuckDuckGo
+Lite. Inside Browsh, `Ctrl+L` opens the URL bar, `Ctrl+T` opens a tab and
+`Ctrl+Q` quits. Browsh uses a fixed port (3334), so only one instance can run
+at a time.
+
 `mpv.sh` defaults to `--vo=tct`, which works in every terminal; pass
 `--vo=kitty` or `--vo=sixel` for higher-quality graphics where supported.
 `chafa.sh` uses symbols by default; `-f kitty` and `-f sixels` give sharper
@@ -470,7 +481,11 @@ the default `~/menutx` installation.
 | hyfetch is missing | `sudo apt install hyfetch`; if the release does not package it, `python3 -m pip install --user --break-system-packages hyfetch`. |
 | OpenCode 2 is missing | `curl -fsSL https://opencode.ai/v2/install \| bash`, then run it from the menu again. |
 | Browsh says Firefox is missing | `sudo apt install firefox-esr`; the installer normally pulls it. |
+| Browsh says port 3334 is in use | Another Browsh is running. Press Ctrl+Q in it, or run `pkill -f browsh`, then relaunch. |
+| Browsh stays on its splash screen | Close stale instances with `pkill -f browsh` and relaunch. The wrapper now asks for a URL and opens DuckDuckGo Lite by default. If it still hangs, Firefox could not load the Browsh extension. |
 | Browsh is slow on the first run | It starts a headless Firefox. Later runs are faster. |
+| The media picker starts in an empty folder | Use `../` to go up, or pass a file directly: `~/menutx/mpv.sh /path/video.mp4`. |
+| `cmus.sh` prints "Added to the running cmus instance" | That is intentional: it queues the track in the existing cmus instead of starting a second one. |
 | mpv shows no video | Launch it through `~/menutx/mpv.sh` (it adds `--vo=tct`), or pass `--vo=kitty` / `--vo=sixel` in a terminal that supports those protocols. |
 | mpv or cmus has no sound | Check the sound server (`pactl info`, `wpctl status`) and ALSA (`aplay -l`). |
 | chafa images look blocky | Use `-f kitty` or `-f sixels` in a supporting terminal; symbols mode is ANSI art by design. |

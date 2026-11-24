@@ -9,7 +9,7 @@
 
 set -u
 
-VERSION="1.1.1"
+VERSION="1.2.0"
 SELF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SELF="$(basename -- "${BASH_SOURCE[0]}")"
 
@@ -95,7 +95,7 @@ scan() {
 
   for f in "$SELF_DIR"/*.sh; do
     b=${f##*/}
-    [[ $b == "$SELF" || $b == "uninstall.sh" || $b == "install.sh" ]] && continue
+    [[ $b == "$SELF" || $b == "uninstall.sh" || $b == "install.sh" || $b == _* ]] && continue
     [[ -f $f && -x $f ]] || continue
     TARGET[${b%.sh}]=$f
   done
@@ -103,7 +103,7 @@ scan() {
   for f in "$SELF_DIR"/*; do
     [[ -f $f && -x $f ]] || continue
     b=${f##*/}
-    [[ $b == "$SELF" || $b == "uninstall.sh" || $b == "install.sh" ]] && continue
+    [[ $b == "$SELF" || $b == "uninstall.sh" || $b == "install.sh" || $b == _* ]] && continue
     case $b in
       *.sh) continue ;;
       *-linux-*) short=${b%%-linux-*} ;;

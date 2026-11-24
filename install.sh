@@ -11,7 +11,7 @@
 set -euo pipefail
 
 APP="menutx"
-MENUTX_VERSION="1.1.1"
+MENUTX_VERSION="1.2.0"
 # Browsh 1.8.3 exists, but it ships only the XPI; 1.8.2 is the latest
 # release with Linux .deb packages.
 BROWSH_VERSION="1.8.2"

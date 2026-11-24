@@ -8,9 +8,16 @@
 
 set -u
 
+DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 if ! command -v micro >/dev/null 2>&1; then
   printf 'menutx: micro is not installed. Re-run the menutx installer.\n' >&2
   exit 127
+fi
+
+if (( $# == 0 )) && [[ -x $DIR/_pick.sh ]]; then
+  picked=$("$DIR/_pick.sh" text) || exit 0
+  exec micro "$picked"
 fi
 
 exec micro "$@"
