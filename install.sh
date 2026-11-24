@@ -11,7 +11,7 @@
 set -euo pipefail
 
 APP="menutx"
-MENUTX_VERSION="1.1.0"
+MENUTX_VERSION="1.1.1"
 # Browsh 1.8.3 exists, but it ships only the XPI; 1.8.2 is the latest
 # release with Linux .deb packages.
 BROWSH_VERSION="1.8.2"
@@ -169,6 +169,11 @@ else
   while [[ $INSTALL_DIR == */ && $INSTALL_DIR != / ]]; do
     INSTALL_DIR=${INSTALL_DIR%/}
   done
+fi
+
+SOURCE_REAL=$(realpath -m -- "$SOURCE_DIR" 2>/dev/null || printf '%s' "$SOURCE_DIR")
+if [[ $INSTALL_DIR == "$SOURCE_REAL" ]]; then
+  die "the repository and the install target are the same directory ($INSTALL_DIR). Clone the repository somewhere else (for example ~/menutx-src) and run install.sh from there, or pass --dir with a different target."
 fi
 
 case $INSTALL_DIR in
@@ -408,7 +413,7 @@ add_alias() {
   cat "$tmp" > "$rc"
   rm -f -- "$tmp"
 
-  alias_line=$(printf 'alias menutx=%q' "$INSTALL_DIR/menutx.sh")
+  alias_line=$(printf 'alias menutx=%q' "bash $INSTALL_DIR/menutx.sh")
   {
     printf '\n%s\n' "$MARK_START"
     printf '%s\n' "$alias_line"

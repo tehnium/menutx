@@ -16,7 +16,7 @@ player, a music player, an image viewer and a text editor. It installs
 `~/.bashrc`.
 
 ```text
-  menutx 1.1.0
+  menutx 1.1.1
   Terminal tools on Debian - 15 launchers
 
   > syswatch     CPU, memory, disks, processes and power
@@ -210,11 +210,20 @@ Without the executable bit, `./install.sh` fails with `Permission denied`.
 
 ### Clone and run
 
+Clone the repository somewhere **other than `~/menutx`** and run the installer
+from there. `~/menutx` is the install target; keeping the repository inside it
+mixes the source tree with the installation and can reset the executable bits.
+
+```text
+~/menutx-src/   <- git clone, run install.sh from here
+~/menutx/       <- created by the installer
+```
+
 Clone the repository and run the installer:
 
 ```bash
-git clone https://github.com/tehnium/menutx.git
-cd menutx
+git clone https://github.com/tehnium/menutx.git ~/menutx-src
+cd ~/menutx-src
 chmod +x install.sh
 ./install.sh
 ```
@@ -376,10 +385,10 @@ alphabetically.
 
 ## Updating
 
-Re-run the installer from a clone of the repository:
+Re-run the installer from the source clone:
 
 ```bash
-cd menutx
+cd ~/menutx-src
 git pull
 ./install.sh
 ```
@@ -472,6 +481,7 @@ the default `~/menutx` installation.
 | The TUI looks garbled after a crash | Run `reset`, use a UTF-8 terminal of at least 80x24, and avoid a non-interactive shell. |
 | Menu exits immediately in a script | That is the non-interactive fallback; use `menutx.sh --list` for scripting. |
 | `Permission denied` when running `./install.sh` | `chmod +x install.sh`, or run `bash install.sh`. ZIP downloads and files uploaded through GitHub's web interface do not keep the executable bit. |
+| `bash: /home/.../menutx.sh: Permission denied` | `chmod +x ~/menutx/*.sh`. Also make sure the repository is not kept inside `~/menutx`; clone it to `~/menutx-src` and install from there. |
 | `sudo authentication failed` | Not a `chmod` problem. Run `sudo -v` in a normal terminal; your user must be in the `sudo` group and sudo must actually work. Containers that set `no_new_privs` or mount `/` read-only cannot run the apt step: use `--no-deps` there, or run the installer on the host. |
 
 ---

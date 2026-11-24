@@ -9,7 +9,7 @@
 
 set -u
 
-VERSION="1.1.0"
+VERSION="1.1.1"
 SELF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SELF="$(basename -- "${BASH_SOURCE[0]}")"
 
