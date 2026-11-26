@@ -11,19 +11,23 @@
 set -euo pipefail
 
 APP="menutx"
-MENUTX_VERSION="1.3.0"
+MENUTX_VERSION="1.4.0"
 SOURCE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # Pinned fallbacks. The installer prefers each project's latest release and
 # only uses these when the GitHub API is unavailable or the asset is missing.
-# Format: tool|owner/repo|tag|amd64 asset|arm64 asset|armv5te asset
+# Format: tool|owner/repo|tag|amd64 asset|arm64 asset|armv5te asset|checksum
+# file. An asset can contain the {ver} placeholder, replaced with the release
+# number without the leading "v" (aptui names its assets that way). The
+# checksum file defaults to SHA256SUMS when left empty.
 MANIFEST=$(cat <<'EOF'
-syswatch|matthart1983/syswatch|v0.14.5|syswatch-linux-x86_64.tar.gz|syswatch-linux-aarch64.tar.gz|syswatch-linux-armv5te-static.tar.gz
-netwatch|matthart1983/netwatch|v1.0.0|netwatch-linux-x86_64.tar.gz|netwatch-linux-aarch64.tar.gz|netwatch-linux-armv5te.tar.gz
-diskwatch|matthart1983/diskwatch|v0.7.2|diskwatch-linux-x86_64.tar.gz|diskwatch-linux-aarch64.tar.gz|diskwatch-linux-armv5te.tar.gz
-kernwatch|matthart1983/kernwatch|v0.5.1|kernwatch-linux-x86_64.tar.gz|kernwatch-linux-aarch64.tar.gz|
-netscan|matthart1983/netscan|v0.8.1|netscan-linux-x86_64-static.tar.gz|netscan-linux-aarch64-static.tar.gz|
-soundwatch|matthart1983/soundwatch|v0.2.0|soundwatch-linux-x86_64.tar.gz|soundwatch-linux-aarch64.tar.gz|
+syswatch|matthart1983/syswatch|v0.14.5|syswatch-linux-x86_64.tar.gz|syswatch-linux-aarch64.tar.gz|syswatch-linux-armv5te-static.tar.gz|
+netwatch|matthart1983/netwatch|v1.0.0|netwatch-linux-x86_64.tar.gz|netwatch-linux-aarch64.tar.gz|netwatch-linux-armv5te.tar.gz|
+diskwatch|matthart1983/diskwatch|v0.7.2|diskwatch-linux-x86_64.tar.gz|diskwatch-linux-aarch64.tar.gz|diskwatch-linux-armv5te.tar.gz|
+kernwatch|matthart1983/kernwatch|v0.5.1|kernwatch-linux-x86_64.tar.gz|kernwatch-linux-aarch64.tar.gz||
+netscan|matthart1983/netscan|v0.8.1|netscan-linux-x86_64-static.tar.gz|netscan-linux-aarch64-static.tar.gz||
+soundwatch|matthart1983/soundwatch|v0.2.0|soundwatch-linux-x86_64.tar.gz|soundwatch-linux-aarch64.tar.gz||
+aptui|mexirica/aptui|v1.0.0|aptui_{ver}_linux_amd64.tar.gz|aptui_{ver}_linux_arm64.tar.gz||aptui_{ver}_checksums.txt
 EOF
 )
 
@@ -243,13 +247,13 @@ latest_tag() {
 }
 
 verify_checksum() {
-  local repo=$1 tag=$2 asset=$3 work=$4
-  local sums="$work/SHA256SUMS"
+  local repo=$1 tag=$2 sums_name=$3 asset=$4 work=$5
+  local sums="$work/$sums_name"
   local line
 
   if ! curl -fsSL --max-time 30 -o "$sums" \
-      "https://github.com/$repo/releases/download/$tag/SHA256SUMS" 2>/dev/null; then
-    info "  no SHA256SUMS published for this release"
+      "https://github.com/$repo/releases/download/$tag/$sums_name" 2>/dev/null; then
+    info "  no checksum file published for this release"
     return 0
   fi
 
@@ -267,13 +271,10 @@ verify_checksum() {
 }
 
 install_tool() {
-  local tool=$1 repo=$2 pinned=$3 asset=$4
+  local tool=$1 repo=$2 pinned=$3 asset_tpl=$4 sums_tpl=$5
   local tag=$pinned
   local latest=""
   local work="$TMP_DIR/$tool"
-  local tarball="$work/$asset"
-  local bin_name="${asset%.tar.gz}"
-  local bin="$INSTALL_DIR/$tool/$bin_name"
 
   if (( USE_LATEST )); then
     latest=$(latest_tag "$repo" || true)
@@ -287,10 +288,26 @@ install_tool() {
   say "$tool $tag"
   mkdir -p "$work"
 
+  # Assets that embed the release number in their name (for example
+  # aptui_{ver}_linux_amd64.tar.gz) get {ver} replaced with the numeric part
+  # of the tag.
+  asset=${asset_tpl//\{ver\}/${tag#v}}
+  sums_name=${sums_tpl:-SHA256SUMS}
+  sums_name=${sums_name//\{ver\}/${tag#v}}
+  local tarball="$work/$asset"
+  local bin_name="${asset%.tar.gz}"
+  local bin="$INSTALL_DIR/$tool/$bin_name"
+
   if ! download "https://github.com/$repo/releases/download/$tag/$asset" "$tarball"; then
     if [[ $tag != "$pinned" ]]; then
       warn "$asset is not present in $tag; falling back to $pinned"
       tag=$pinned
+      asset=${asset_tpl//\{ver\}/${tag#v}}
+      sums_name=${sums_tpl:-SHA256SUMS}
+      sums_name=${sums_name//\{ver\}/${tag#v}}
+      tarball="$work/$asset"
+      bin_name="${asset%.tar.gz}"
+      bin="$INSTALL_DIR/$tool/$bin_name"
       download "https://github.com/$repo/releases/download/$tag/$asset" "$tarball" \
         || die "could not download $tool"
     else
@@ -298,13 +315,20 @@ install_tool() {
     fi
   fi
 
-  verify_checksum "$repo" "$tag" "$asset" "$work" \
+  verify_checksum "$repo" "$tag" "$sums_name" "$asset" "$work" \
     || die "checksum verification failed for $tool"
 
   rm -rf -- "$INSTALL_DIR/$tool"
   mkdir -p "$INSTALL_DIR/$tool"
   if ! tar -xzf "$tarball" -C "$INSTALL_DIR/$tool" --no-same-owner; then
     die "could not extract the $tool archive"
+  fi
+
+  # Some archives ship the binary under the tool's own name instead of the
+  # asset name (aptui); fall back to that.
+  if [[ ! -f $bin && -f $INSTALL_DIR/$tool/$tool ]]; then
+    bin_name=$tool
+    bin="$INSTALL_DIR/$tool/$bin_name"
   fi
 
   [[ -f $bin ]] || die "the $tool archive did not contain $bin_name"
@@ -385,7 +409,7 @@ case $(uname -m) in
   *) die "unsupported CPU architecture: $(uname -m) (supported: x86_64, aarch64, armv7l/armv5te)" ;;
 esac
 
-while IFS='|' read -r tool repo pinned amd64 arm64 armhf; do
+while IFS='|' read -r tool repo pinned amd64 arm64 armhf sums; do
   if [[ -z $tool || $tool == \#* ]]; then
     continue
   fi
@@ -400,7 +424,7 @@ while IFS='|' read -r tool repo pinned amd64 arm64 armhf; do
     SKIPPED_TOOLS+=("$tool")
     continue
   fi
-  install_tool "$tool" "$repo" "$pinned" "$asset"
+  install_tool "$tool" "$repo" "$pinned" "$asset" "$sums"
 done <<< "$MANIFEST"
 
 if (( ${#SKIPPED_TOOLS[@]} )); then
@@ -484,8 +508,9 @@ else
 fi
 printf '  Remove it later with:\n\n'
 printf '    %q\n\n' "$INSTALL_DIR/uninstall.sh"
-printf '  The launchers ask for your sudo password only when a tool needs root.\n'
-printf '  Upstream tools: https://github.com/matthart1983\n\n'
+printf '  The launchers ask for your sudo password only when a tool needs root\n'
+printf '  (netwatch, diskwatch, kernwatch, netscan and aptui).\n'
+printf '  Upstream tools: https://github.com/matthart1983 and https://github.com/mexirica\n\n'
 
 if (( ADD_ALIAS )) && [[ ${SHELL:-} == */zsh ]]; then
   warn "your login shell is zsh: the alias was written to ~/.bashrc only. Run the menu directly, or add the same alias to ~/.zshrc."

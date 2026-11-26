@@ -8,16 +8,17 @@ with one script on Debian-based systems.**
 ![Shell: Bash](https://img.shields.io/badge/shell-bash-4EAA25?logo=gnubash&logoColor=white)
 
 menutx creates `~/menutx`, installs the packages the tools need, downloads the
-latest Linux builds of six terminal diagnostics programs, verifies
-their checksums when the project publishes them, and puts everything behind one
-arrow-key menu. The same menu also gives you a text-based web browser, a video
-player, a music player, an image viewer and a text editor. It installs
+latest Linux builds of six terminal diagnostics programs plus aptui, a TUI
+package manager, verifies their checksums when the project publishes them,
+and puts everything behind one arrow-key menu. The same menu also gives you a
+package manager, a text-based web browser, a video player, a music player, an
+image viewer and a text editor. It installs
 `hyfetch`, `mc`, `nmon` and `opencode`, and adds a `menutx` alias to your
 `~/.bashrc`.
 
 ```text
-  menutx 1.3.0
-  Terminal tools on Debian - 15 launchers
+  menutx 1.4.0
+  Terminal tools on Debian - 16 launchers
 
   > syswatch     CPU, memory, disks, processes and power
     netwatch     Connections, latency and packet capture
@@ -25,6 +26,7 @@ player, a music player, an image viewer and a text editor. It installs
     kernwatch    Kernel, eBPF, scheduler and interrupts
     netscan      nmap scans and attack-surface workflow
     soundwatch   Audio devices, streams and meters
+    aptui        APT packages: browse, install, remove, upgrade
     links2       Text web browser (tables, forms, SSL)
     mpv          Video player with terminal output
     cmus         Music player and library
@@ -68,8 +70,8 @@ running `./install.sh` will:
    the `smartctl` client. Disable it with `sudo systemctl disable --now smartd`
    if you do not want it.
 2. **Create `~/menutx`** and set up the menu's tools (table below). The six
-   diagnostics are downloaded from GitHub in this step; links2, mpv, cmus,
-   chafa and micro come from apt in step 1.
+   diagnostics and aptui are downloaded from GitHub in this step; links2, mpv,
+   cmus, chafa and micro come from apt in step 1.
 
    | Tool | What it does | Elevation | Upstream | License |
    |---|---|---|---|---|
@@ -79,6 +81,7 @@ running `./install.sh` will:
    | **kernwatch** | Kernel observability with eBPF: scheduling, memory, block I/O, syscalls, IRQs, cgroups | `sudo` | [matthart1983/kernwatch](https://github.com/matthart1983/kernwatch) | MIT |
    | **netscan** | An nmap workflow: target groups, scan profiles, live results and history | `sudo` | [matthart1983/netscan](https://github.com/matthart1983/netscan) | MIT |
    | **soundwatch** | Audio devices, streams, meters, spectrum, latency, xruns and routing | your user | [matthart1983/soundwatch](https://github.com/matthart1983/soundwatch) | MIT |
+   | **aptui** | A TUI package manager: browse, search, install, remove, upgrade, hold, pin and clean up APT packages, with transaction history, PPA management and mirror testing | `sudo` | [mexirica/aptui](https://github.com/mexirica/aptui) | MIT |
    | **links2** | Text web browser with tables, forms, cookies and SSL | your user | [links.twibright.com](http://links.twibright.com/) | GPL-2.0 |
    | **mpv** | Video player with terminal output (`--vo=tct`) | your user | [mpv-player/mpv](https://github.com/mpv-player/mpv) | GPL-2.0-or-later |
    | **cmus** | Music player and library for the terminal | your user | [cmus/cmus](https://github.com/cmus/cmus) | GPL-2.0 |
@@ -99,9 +102,9 @@ running `./install.sh` will:
    `--no-opencode`.
 
 The menu itself runs as your normal user. Only the launchers that need root
-call `sudo` (netwatch, diskwatch, kernwatch, netscan); syswatch, soundwatch,
-links2, mpv, cmus, chafa, micro, hyfetch, mc, nmon and opencode run as you.
-This keeps tool configuration in your home instead of `/root`.
+call `sudo` (netwatch, diskwatch, kernwatch, netscan and aptui); syswatch,
+soundwatch, links2, mpv, cmus, chafa, micro, hyfetch, mc, nmon and opencode
+run as you. This keeps tool configuration in your home instead of `/root`.
 
 The installer does not write to `/etc` itself, replace system binaries, or
 register its own services; apt packages may perform their normal setup (for
@@ -128,6 +131,16 @@ All six are MIT-licensed. menutx only downloads, installs and launches them;
 it is not affiliated with Matt Hartley. If you find these tools useful, star
 the upstream repositories and consider supporting the author.
 
+**aptui is created by Rodrigo Brás Mecheri
+([@mexirica](https://github.com/mexirica) on GitHub,
+[rodrigomecheri.dev](https://rodrigomecheri.dev),
+[LinkedIn](https://www.linkedin.com/in/rodrigo-mecheri/)).** Repository:
+[mexirica/aptui](https://github.com/mexirica/aptui) — an MIT-licensed TUI
+package manager for APT-based distributions, built with Bubble Tea. menutx
+only downloads and launches it; it is not affiliated with Rodrigo Brás
+Mecheri. If you find it useful, star
+[the upstream repository](https://github.com/mexirica/aptui).
+
 Other upstream projects:
 
 - [links2](http://links.twibright.com/) by Mikulas Patocka and contributors, GPL-2.0
@@ -137,6 +150,7 @@ Other upstream projects:
 - [micro](https://github.com/zyedidia/micro), MIT
 - [fzf](https://github.com/junegunn/fzf), MIT, used by the video and image pickers
 - [hyfetch](https://github.com/hykilpikonna/hyfetch) by Azis (hykilpikonna), MIT
+- [aptui](https://github.com/mexirica/aptui) by Rodrigo Brás Mecheri ([mexirica](https://github.com/mexirica)), MIT
 - [Midnight Commander](https://github.com/MidnightCommander/mc), GPL-3.0-or-later
 - [nmon](https://nmon.sourceforge.net) by Nigel Griffiths, GPL-3.0-or-later
 - [opencode](https://github.com/anomalyco/opencode), MIT
@@ -156,7 +170,7 @@ Other upstream projects:
   before changing anything. Restricted containers that set `no_new_privs` or
   mount `/` read-only cannot run the apt step; use `--no-deps` there.
 - **Internet access** to Debian mirrors and GitHub releases.
-- About **250 MB** of disk space, including the downloaded binaries and the
+- About **260 MB** of disk space, including the downloaded binaries and the
   apt packages. mpv pulls the ffmpeg libraries.
 - A UTF-8 terminal of at least 80x24.
 - For **kernwatch**: a kernel built with BTF (`/sys/kernel/btf/vmlinux`).
@@ -258,7 +272,7 @@ If you prefer not to use the alias:
 |---|---|
 | `--dir PATH` | Install into `PATH` instead of `~/menutx` |
 | `--pinned` | Use the pinned versions in `install.sh`; do not query GitHub for the latest release |
-| `--no-deps` | Skip the apt packages (and hyfetch, links2, mpv, cmus, chafa and micro); the six diagnostics are still downloaded |
+| `--no-deps` | Skip the apt packages (and hyfetch, links2, mpv, cmus, chafa and micro); the six diagnostics and aptui are still downloaded |
 | `--no-opencode` | Do not install OpenCode 2 or its launcher |
 | `--no-alias` | Do not touch `~/.bashrc` |
 | `-h`, `--help` | Show usage |
@@ -281,19 +295,22 @@ scopes is enough for public repositories.
 │   ├── diskwatch -> ../diskwatch/diskwatch-linux-x86_64
 │   ├── kernwatch -> ../kernwatch/kernwatch-linux-x86_64
 │   ├── netscan -> ../netscan/netscan-linux-x86_64-static
-│   └── soundwatch -> ../soundwatch/soundwatch-linux-x86_64
+│   ├── soundwatch -> ../soundwatch/soundwatch-linux-x86_64
+│   └── aptui -> ../aptui/aptui
 ├── syswatch/
 ├── netwatch/
 ├── diskwatch/
 ├── kernwatch/                 # binary, LICENSE, README and BPF provenance
 ├── netscan/
 ├── soundwatch/
+├── aptui/                     # binary, LICENSE and README from the release
 ├── syswatch.sh                # launchers, one per tool
 ├── netwatch.sh
 ├── diskwatch.sh
 ├── kernwatch.sh
 ├── netscan.sh
 ├── soundwatch.sh
+├── aptui.sh
 ├── links2.sh
 ├── mpv.sh
 ├── cmus.sh
@@ -307,7 +324,7 @@ scopes is enough for public repositories.
 
 `links2`, `mpv`, `cmus`, `chafa` and `micro` are apt packages installed
 system-wide; their launchers call the system commands. The `bin/` symlinks
-apply to the six downloaded diagnostics.
+apply to the six downloaded diagnostics and to aptui.
 
 The exact binary names inside each tool folder depend on the architecture
 (`x86_64`, `aarch64`, `armv5te`); the `bin/` symlinks hide that difference.
@@ -347,7 +364,15 @@ Every tool can also be started directly, which is handy for passing flags:
 ~/menutx/kernwatch.sh --view dense
 ~/menutx/netscan.sh
 ~/menutx/soundwatch.sh --theme btop
+~/menutx/aptui.sh
 ```
+
+`aptui.sh` asks for your sudo password (aptui manages system packages) and
+then opens the package manager. Inside aptui: `/` searches and filters,
+`i` installs, `r` removes, `u` upgrades, `space` multi-selects, `t` opens the
+transaction history, `P` manages PPAs, `T` toggles the theme and `q` quits.
+See the [aptui README](https://github.com/mexirica/aptui#readme) for the full
+keybinding list.
 
 Browsing, media and editing:
 
@@ -382,7 +407,7 @@ its Hot Files view follows your home directory rather than `/root`.
 
 To add your own launcher, drop an executable `*.sh` file into `~/menutx` and
 press `r` in the menu. The menu reproduces the pinned order (the six watch
-tools, then links2, mpv, cmus, chafa and micro) and sorts anything else
+tools, then aptui, links2, mpv, cmus, chafa and micro) and sorts anything else
 alphabetically.
 
 ---
@@ -412,9 +437,13 @@ fallbacks are:
 | kernwatch | v0.5.1 |
 | netscan | v0.8.1 |
 | soundwatch | v0.2.0 |
+| aptui | v1.0.0 |
 
-The six diagnostics tools normally use each project's **latest** GitHub release;
-the pins are fallbacks for when the API is unavailable or an asset is missing.
+The six diagnostics tools and aptui normally use each project's **latest**
+GitHub release; the pins are fallbacks for when the API is unavailable or an
+asset is missing. aptui names its release assets after the release number
+(for example `aptui_1.0.0_linux_amd64.tar.gz`), so its download follows the
+tag automatically.
 
 ### How the download works
 
@@ -423,9 +452,10 @@ the pins are fallbacks for when the API is unavailable or an asset is missing.
 2. The asset is chosen from the manifest for `amd64`, `arm64` or `armhf`
    (armv5te builds).
 3. The archive is downloaded over HTTPS from the GitHub release page.
-4. If the release publishes `SHA256SUMS`, the matching line is verified with
-   `sha256sum -c`. netscan does not publish checksums today, so that step is
-   skipped for it.
+4. If the release publishes a checksum file (`SHA256SUMS`, or the
+   `aptui_<version>_checksums.txt` file in aptui's case), the matching line is
+   verified with `sha256sum -c`. netscan does not publish checksums today, so
+   that step is skipped for it.
 5. The archive is extracted into `~/menutx/<tool>/`, the binary is marked
    executable, and `~/menutx/bin/<tool>` is pointed at it.
 
@@ -460,6 +490,8 @@ the default `~/menutx` installation.
 | soundwatch starts but the meters are empty | Make sure PipeWire or PulseAudio is running for your user and `libpulse0` is installed (`sudo apt install libpulse0 pipewire`). |
 | netwatch says capture is not permitted | Launch it through `~/menutx/netwatch.sh` (it uses sudo), or grant capabilities as described in the netwatch documentation. |
 | netscan cannot find nmap | `sudo apt install nmap`. The installer normally does this. |
+| aptui cannot install or remove packages | Launch it through `~/menutx/aptui.sh` (it uses sudo), or run `sudo ~/menutx/aptui.sh` yourself. |
+| aptui does not start | It needs a real TTY and a UTF-8 terminal of at least 80x24; run it from the menu or a terminal, not from a pipe. |
 | hyfetch is missing | `sudo apt install hyfetch`; if the release does not package it, `python3 -m pip install --user --break-system-packages hyfetch`. |
 | OpenCode 2 is missing | `curl -fsSL https://opencode.ai/v2/install \| bash`, then run it from the menu again. |
 | The media picker starts in an empty folder | Use `../` to go up, or pass a file directly: `~/menutx/mpv.sh /path/video.mp4`. |
@@ -489,9 +521,9 @@ Copyright (C) 2026 tehnium and contributors.
 
 The tools menutx downloads or installs are **not** covered by this license.
 They are separate projects with their own licenses: the six `*watch` tools are
-MIT, links2 is GPL-2.0, mpv is GPL-2.0-or-later, cmus is GPL-2.0, chafa is
-LGPL-3.0 and micro is MIT. menutx does not redistribute them; it downloads or
-installs them at install time.
+MIT, aptui is MIT, links2 is GPL-2.0, mpv is GPL-2.0-or-later, cmus is
+GPL-2.0, chafa is LGPL-3.0 and micro is MIT. menutx does not redistribute
+them; it downloads or installs them at install time.
 
 menutx is an unofficial launcher and is not affiliated with Matt Hartley or
 the upstream projects. The tools run with elevated privileges when they need
